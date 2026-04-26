@@ -64,7 +64,7 @@ public:
 int main()
 {
 	setlocale(LC_ALL, "Rus");
-	int n, p;
+	int num, n, p;
 	string t, a, ps, s;
 	cin >> n;
 	Edition** list = new Edition * [n];
@@ -83,8 +83,8 @@ int main()
 		else if (choice == 2) {
 			string ns;
 			getline(cin, ns);
-			n = stoi(ns);
-			list[i] = new Magazine(t, a, p, n);
+			num = stoi(ns);
+			list[i] = new Magazine(t, a, p, num);
 		}
 		else if (choice == 3) {
 			getline(cin, s);
