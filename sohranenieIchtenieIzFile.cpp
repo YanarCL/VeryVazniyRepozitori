@@ -1,126 +1,148 @@
-#include <string>
 #include <iostream>
-#include <fstream> // Для работы с файлами
-
+#include <string>
+#include <fstream>
 using namespace std;
 
-// Классы Edition, Book, Magazine, Textbook остаются без изменений
-class Edition {
+class BankProduct {
 protected:
-    string title;
-    string author;
-    int pages;
-public:
-    Edition(string t, string a, int p) : title(t), author(a), pages(p) {}
-    virtual ~Edition() {};
-    virtual void showInfo() const = 0;
-    virtual double cost() const = 0;
-    virtual string type() const = 0;
-};
+    string clientName;
+    double balance;
+    int year;
 
-class Book : public Edition {
-    string genre;
 public:
-    Book(string t, string a, int p, string g) : Edition(t, a, p), genre(g) {}
-    double cost() const override { return (200 + (2 * pages)); }
-    void showInfo() const override { cout << "Книга: " << title << " | "; }
-    string type() const override { return "Book type"; }
-};
-
-class Magazine : public Edition {
-    int issueNumber;
-public:
-    Magazine(string t, string a, int p, int n) : Edition(t, a, p), issueNumber(n) {}
-    double cost() const override { return 150; }
-    void showInfo() const override { cout << "Журнал: " << title << " | "; }
-    string type() const override { return "Magazine type"; }
-};
-
-class Textbook : public Edition {
-    string subject;
-public:
-    Textbook(string t, string a, int p, string s) : Edition(t, a, p), subject(s) {}
-    double cost() const override {
-        return (pages > 500) ? 300 * 0.85 : 300;
+    BankProduct(string n = "", double b = 0, int y = 0)
+        : clientName(n), balance(b), year(y) {
     }
-    void showInfo() const override { cout << "Учебник: " << title << " | "; }
-    string type() const override { return "Textbook type"; }
+    virtual ~BankProduct() {}
+    virtual double pribil() const = 0;
+    virtual void Print() const = 0;
+    virtual void Read(ifstream& in) = 0;
+    virtual void Save(ofstream& out) = 0;
+};
+
+class Deposit : public BankProduct {
+public:
+    Deposit(string n = "", double b = 0, int y = 0)
+        : BankProduct(n, b, y) {
+    }
+    double pribil() const override {
+        return balance * 0.05 * year;
+    }
+    void Print() const override {
+        cout << "Deposit:\n";
+        cout << "Client Name: " << clientName << endl;
+        cout << "Balance: " << balance << endl;
+        cout << "Years: " << year << endl;
+    }
+    void Read(ifstream& in) override {
+        getline(in, clientName);
+        in >> balance >> year;
+        in.ignore(10000, '\n');
+    }
+    void Save(ofstream& out) override {
+        out << "Deposit\n";
+        out << "Name: " << clientName << endl;
+        out << "Balance: " << balance << endl;
+        out << "Years: " << year << endl;
+    }
+};
+
+class Credit : public BankProduct {
+public:
+    Credit(string n = "", double b = 0, int y = 0)
+        : BankProduct(n, b, y) {
+    }
+    double pribil() const override {
+        return balance * 0.1 * year;
+    }
+    void Print() const override {
+        cout << "Credit:\n";
+        cout << "Client Name: " << clientName << endl;
+        cout << "Balance: " << balance << endl;
+        cout << "Years: " << year << endl;
+    }
+    void Read(ifstream& in) override {
+        getline(in, clientName);
+        in >> balance >> year;
+        in.ignore(10000, '\n');
+    }
+    void Save(ofstream& out) override {
+        out << "Credit\n";
+        out << "Name: " << clientName << endl;
+        out << "Balance: " << balance << endl;
+        out << "Years: " << year << endl;
+    }
+};
+
+class Investment : public BankProduct {
+public:
+    Investment(string n = "", double b = 0, int y = 0)
+        : BankProduct(n, b, y) {
+    }
+    double pribil() const override {
+        double bonus = (rand() % 6) / 100.0;
+        return balance * (0.07 + bonus) * year;
+    }
+    void Print() const override {
+        cout << "Investment:\n";
+        cout << "Client Name: " << clientName << endl;
+        cout << "Balance: " << balance << endl;
+        cout << "Years: " << year << endl;
+    }
+    void Read(ifstream& in) override {
+        getline(in, clientName);
+        in >> balance >> year;
+        in.ignore(10000, '\n');
+    }
+    void Save(ofstream& out) override {
+        out << "Investment\n";
+        out << "Name: " << clientName << endl;
+        out << "Balance: " << balance << endl;
+        out << "Years: " << year << endl;
+    }
 };
 
 int main() {
-    setlocale(LC_ALL, "Rus");
-    
-    int n;
-    cout << "Введите количество изданий: ";
-    cin >> n;
-
-    // --- ЗАПИСЬ В ФАЙЛ ---
-    ofstream outFile("data.txt");
-    if (!outFile) {
-        cerr << "Ошибка открытия файла для записи!" << endl;
-        return 1;
+    int total, choice;
+    cout << "skok budet: ";
+    cin >> total;
+    while (total < 0  cin.fail()) {
+        cin.clear();
+        cin.ignore(1000, '\n');
+        cout << "Uncorrect!!";
+        cin >> total;
     }
-
-    outFile << n << endl; // Записываем количество в начало файла
-
-    for (int i = 0; i < n; i++) {
-        int choice, pages;
-        string t, a, extra;
-        
-        cout << "Тип (1-Книга, 2-Журнал, 3-Учебник): ";
+    ifstream in("input.txt");
+    ofstream out("output.txt");
+    BankProduct** bank = new BankProduct * [total];
+    cout << "chto dobavlyaem: ";
+    for (int i = 0; i < total; i++) {
         cin >> choice;
-        cin.ignore();
-        cout << "Название: "; getline(cin, t);
-        cout << "Автор: "; getline(cin, a);
-        cout << "Стр: "; cin >> pages;
-        cin.ignore();
-        cout << "Доп. инфо (жанр/номер/предмет): "; getline(cin, extra);
-
-        // Пишем в файл в строгом порядке
-        outFile << choice << endl << t << endl << a << endl << pages << endl << extra << endl;
+        while (choice < 1  choice > 3) {
+            cout << "Uncorrect!!";
+            cin >> choice;
+        }
+        switch (choice) {
+        case 1: bank[i] = new Deposit(); break;
+        case 2: bank[i] = new Credit(); break;
+        case 3: bank[i] = new Investment(); break;
+        }
     }
-    outFile.close();
-
-    // --- ЧТЕНИЕ ИЗ ФАЙЛА ---
-    ifstream inFile("data.txt");
-    if (!inFile) {
-        cerr << "Ошибка открытия файла для чтения!" << endl;
-        return 1;
+    
+    for (int i = 0; i < total; i++) {
+        bank[i]->Read(in);
     }
+    cout << "infa " << endl;
+    for (int i = 0; i < total; i++) {
+        bank[i]->Print();
+        double m = bank[i]->pribil();
+        cout << "Money: " << m << endl << endl;
 
-    int countFromFile;
-    inFile >> countFromFile;
-
-    Edition** list = new Edition*[countFromFile];
-
-    for (int i = 0; i < countFromFile; i++) {
-        int choice, p;
-        string t, a, extra;
-
-        inFile >> choice;
-        inFile >> ws; // Пропускаем пробелы/переносы перед getline
-        getline(inFile, t);
-        getline(inFile, a);
-        inFile >> p;
-        inFile >> ws;
-        getline(inFile, extra);
-
-        if (choice == 1) list[i] = new Book(t, a, p, extra);
-        else if (choice == 2) list[i] = new Magazine(t, a, p, stoi(extra));
-        else list[i] = new Textbook(t, a, p, extra);
+        bank[i]->Save(out);
+        out << "Money: " << m << endl;
     }
-    inFile.close();
-
-    // --- ВЫВОД РЕЗУЛЬТАТОВ ---
-    cout << "\n--- Результаты из файла ---" << endl;
-    for (int i = 0; i < countFromFile; i++) {
-        list[i]->showInfo();
-        cout << " Цена: " << list[i]->cost() << " | " << list[i]->type() << endl;
+    for (int i = 0; i < total; i++) {
+        delete bank[i];
     }
-
-    // Очистка памяти
-    for (int i = 0; i < countFromFile; i++) delete list[i];
-    delete[] list;
-
-    return 0;
+    delete[] bank;
 }
